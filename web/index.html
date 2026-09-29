@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101b23">
+  <title>BADSC · 本地卡组转换</title>
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="BADSC 首页"><span class="brand-mark">B<span>✳</span></span><span>BADSC<small>DECK SHARE CODE</small></span></a>
+      <span class="local-badge"><span class="dot"></span> 浏览器本地转换</span>
+    </header>
+    <main>
+      <div class="intro">
+        <div class="eyebrow">BROKEN ARROW / DECK UTILITY</div>
+        <h1>卡组与分享码，双向转换。</h1>
+        <p>上传 .dek 获取分享码，或输入完整分享码还原 .dek。卡组只在当前浏览器中处理。</p>
+      </div>
+      <div class="workspace">
+        <section class="window input-window" aria-labelledby="input-title">
+          <div class="window-header"><span class="window-number">01 / INPUT</span><h2 id="input-title">输入卡组</h2></div>
+          <div class="input-section">
+            <div class="section-heading"><span class="step">A</span><div><h3>上传 .dek 文件</h3><p>选择或拖入本地卡组文件</p></div></div>
+            <div id="drop-zone" class="drop-zone">
+              <span class="drop-icon" aria-hidden="true">↥</span>
+              <strong>拖入 .dek 文件</strong>
+              <span>或点击下方按钮选择</span>
+              <label class="primary-button" for="file-input">选择 .dek 文件</label>
+              <input id="file-input" type="file" accept=".dek" hidden>
+              <small>最大 1 MB · 文件不会上传</small>
+            </div>
+          </div>
+          <div class="section-divider"><span>或</span></div>
+          <div class="input-section code-input-section">
+            <div class="section-heading"><span class="step">B</span><div><h3>输入分享码</h3><p>粘贴“卡组名-内容码”的完整文本</p></div></div>
+            <label class="sr-only" for="code-input">完整分享码</label>
+            <textarea id="code-input" spellcheck="false" placeholder="在这里粘贴完整分享码…"></textarea>
+            <button id="decode-button" class="primary-button submit-button" type="button">确定并还原 .dek <span aria-hidden="true">↗</span></button>
+          </div>
+          <p id="status" class="status" role="status" aria-live="polite">等待输入</p>
+        </section>
+        <section id="result" class="window result-window" aria-labelledby="result-title">
+          <div class="window-header"><span class="window-number">02 / OUTPUT</span><h2 id="result-title">转换结果</h2></div>
+          <div class="result-section overview-section">
+            <div class="result-label"><h3>基本信息</h3><span id="source-tag" class="source-tag hidden"></span></div>
+            <div id="overview-empty" class="placeholder"><span class="placeholder-icon" aria-hidden="true">◇</span><p>转换后，卡组信息将在这里显示。</p></div>
+            <div id="overview-content" class="hidden">
+              <div class="deck-name-label">卡组名字</div>
+              <div id="deck-name" class="deck-name"></div>
+              <div class="meta-grid">
+                <div><span>阵营 ID</span><strong id="deck-country"></strong></div>
+                <div><span>专精 1 ID</span><strong id="deck-spec1"></strong></div>
+                <div><span>专精 2 ID</span><strong id="deck-spec2"></strong></div>
+                <div><span>卡片数</span><strong id="deck-count"></strong></div>
+              </div>
+            </div>
+          </div>
+          <div class="result-section output-section">
+            <div class="result-label"><h3>输出内容</h3><span id="result-kind" class="result-kind">等待转换</span></div>
+            <div id="output-empty" class="placeholder"><span class="placeholder-icon" aria-hidden="true">⌁</span><p>上传文件后可复制分享码；输入分享码后可下载 .dek。</p></div>
+            <div id="share-section" class="share-section hidden">
+              <div class="output-intro"><strong>分享码已生成</strong><span id="code-length"></span></div>
+              <textarea id="generated-code" readonly aria-label="生成的完整分享码"></textarea>
+              <button id="copy-button" class="secondary-button" type="button">复制分享码 <span aria-hidden="true">↗</span></button>
+            </div>
+            <div id="download-section" class="download-section hidden">
+              <div class="download-icon" aria-hidden="true">↓</div>
+              <strong>卡组文件已还原</strong>
+              <p id="download-filename"></p>
+              <button id="download-button" class="secondary-button" type="button">下载 .dek 文件 <span aria-hidden="true">↓</span></button>
+            </div>
+          </div>
+        </section>
+      </div>
+      <p class="footnote">仅显示卡组基本信息，不判断游戏版本兼容性。分享码校验用于发现传输损坏。</p>
+    </main>
+    <footer><span>BADSC</span><span>LOCAL DECK UTILITY</span></footer>
+  </div>
+</body>
+</html>
