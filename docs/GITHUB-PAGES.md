@@ -4,10 +4,12 @@
 
 - 开发仓库：`https://github.com/Zggggg123/BADSC.git`。
 - 网站仓库：`https://github.com/Zggggg123/BADSC-web.git`，公开仓库。
-- 网站：<https://zggggg123.github.io/BADSC-web/>。
+- 网站：<https://zgggg.top/BADSC-web/>；<https://zggggg123.github.io/BADSC-web/> 自动跳转到此地址。
 - Pages 来源：`main` 分支、`/(root)`，启用 HTTPS。
 
 所有改动在开发仓库完成。网站仓库保存可直接发布的静态文件，由发布脚本管理，不在里面手工修改。
+
+项目站点自动继承账号已有的 `zgggg.top` 自定义域名。本次只设置 `BADSC-web` 项目的 Pages 与 HTTPS，没有修改博客仓库或 DNS。
 
 ## 日常发布
 
@@ -49,9 +51,26 @@ GitHub Pages 不应用 Cloudflare 的 `_headers` 文件，因此发布包不包�
 ## 线上验收
 
 ```sh
-node tools/verify-site.mjs https://zggggg123.github.io/BADSC-web/
+node tools/verify-site.mjs https://zgggg.top/BADSC-web/
+node tools/check-site-release.mjs
 ```
 
 验收脚本需要 Node.js 20+、Playwright 和 Chrome；网站使用及发布仍支持 Node.js 18+。优先导入安装的 Playwright，也可通过 `BADSC_PLAYWRIGHT_PATH` 指定其模块入口。当前开发机可复用 WorkBuddy 中已有的 Playwright，不影响网站运行，也不会将此依赖上传到网站。
 
 检查五份真实样本的上传、完整分享码生成、点击复制、还原与实际下载，并将下载文件和原文件逐字节比较；检查语言切换与刷新保持、损坏输入处理、页面异常和资源加载。提供剪贴板权限的无头浏览器验收仍需配合日常浏览器手动检查。
+
+`check-site-release.mjs` 从 `.publish/site/release.json` 读取本次预期发布记录，检查线上记录、所有资源 SHA-256、HTTPS 和 WASM MIME，验证实际部署的字节。先执行发布或打包才能检查；重新打包后记录会指向新的开发提交，需要再次发布才会与线上相同。
+
+## 首次上线验收记录（2026-09-30）
+
+- Pages 已启用 `main` 根目录发布，API 状态 `built`；HTTPS 强制跳转为 `true`。
+- 网站提交：`6ef8a87395fda7e7928b2d00f97206cd434be438`。
+- 网页来源开发提交：`41bd8baa634594c319f0578dd39e71a6d85988aa`。
+- 编解码回归：471 份样本全部逐字节往返通过。
+- 本地子路径与线上网站：各完成五份真实样本的上传、点击复制、还原和实际下载；五份下载均与原文件逐字节相同。
+- 语言切换、结果保持、刷新后语言保持、损坏分享码拒绝均通过。
+- 线上全部 14 个资源与本地产物 SHA-256 一致；WASM MIME 为 `application/wasm`；页面异常与失败资源请求为空。
+- GitHub Pages 入口实际跳转到 `https://zgggg.top/BADSC-web/`，经资源校验脚本核对。
+- 本机截图保存在 `.publish/local.png`、`.publish/online.png`，不上传到开发或网站仓库。
+
+验收来自提供剪贴板权限的无头 Chrome；常规浏览器手动验收与国内不同网络的访问效果仍未验证。

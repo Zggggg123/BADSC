@@ -4,7 +4,7 @@ BADSC 是《Broken Arrow》卡组文件 `.dek` 与分享码双向转换的本地
 
 ## 快速开始
 
-在线使用：[BADSC 网站](https://zggggg123.github.io/BADSC-web/)。在线转换也只在浏览器内进行，不会上传卡组文件或分享码。
+在线使用：[BADSC 网站](https://zgggg.top/BADSC-web/)（[GitHub Pages 入口](https://zggggg123.github.io/BADSC-web/)会自动跳转）。在线转换也只在浏览器内进行，不会上传卡组文件或分享码。
 
 下面是本地运行方式：
 
