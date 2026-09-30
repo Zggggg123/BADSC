@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { webcrypto, createCipheriv, createDecipheriv } from 'node:crypto';
 import { brotliDecompressSync } from 'node:zlib';
+import { syntheticFixtures } from './fixtures/synthetic-decks.mjs';
 
 // Node 22 起 globalThis.crypto 是只读 getter，直接赋值会抛 TypeError。
 // 只在尚未提供时兜底，Node 18 与 Node 22+ 都能运行。
@@ -18,7 +19,7 @@ globalThis.fetch = async (url) => {
 
 const { decodeDek, encodeShareCode, decodeShareCode, parseDeck } = await import('../web/codec.js');
 const root = fileURLToPath(new URL('..', import.meta.url));
-const sample = new Uint8Array(await fs.readFile(path.join(root, 'test_dek', 'MAIN', '近坦 海步.dek')));
+const sample = new Uint8Array(syntheticFixtures()[0].bytes);
 const plain = (await decodeDek(sample)).plain;
 const name = parseDeck(plain).name;
 const code = await encodeShareCode(sample);

@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
-import { git, siteUrl } from './site-git.mjs';
+import { git, siteUrl, siteConfig } from './site-git.mjs';
 
 export const root = fileURLToPath(new URL('..', import.meta.url));
 export const output = path.join(root, '.publish', 'site');
@@ -41,6 +41,14 @@ export function buildSite({ preview = false } = {}) {
     } else throw new Error(`不支持的文件：${relative}`);
   }
   for (const entry of entries) copy(entry);
+  for (const name of ['LICENSE', 'THIRD-PARTY-NOTICES.md']) {
+    fs.copyFileSync(path.join(root, name), path.join(output, name));
+    assets[name] = createHash('sha256').update(fs.readFileSync(path.join(output, name))).digest('hex');
+  }
+  fs.cpSync(path.join(root, 'licenses'), path.join(output, 'licenses'), { recursive: true });
+  for (const name of fs.readdirSync(path.join(output, 'licenses'))) {
+    assets[`licenses/${name}`] = createHash('sha256').update(fs.readFileSync(path.join(output, 'licenses', name))).digest('hex');
+  }
   const manifest = JSON.parse(fs.readFileSync(path.join(output, 'dictionaries', 'manifest.json'), 'utf8'));
   if (manifest.format !== 1 || !manifest.snapshots.some(snapshot => snapshot.id === manifest.current)) {
     throw new Error('字典清单无效');
@@ -54,7 +62,7 @@ export function buildSite({ preview = false } = {}) {
   fs.writeFileSync(path.join(output, '.nojekyll'), '');
   // Pages 的 Linux checkout 与 Windows 发布目录必须保留相同字节。
   fs.writeFileSync(path.join(output, '.gitattributes'), '* -text\n');
-  const release = { sourceRepository: 'https://github.com/Zggggg123/BADSC', sourceCommit, preview: Boolean(dirty), assets };
+  const release = { sourceRepository: siteConfig.sourceRepository, sourceCommit, preview: Boolean(dirty), assets };
   fs.writeFileSync(path.join(output, 'release.json'), JSON.stringify(release, null, 2) + '\n');
   fs.writeFileSync(path.join(output, 'README.md'), `# BADSC website\n\nLive site: ${siteUrl}\n\nGenerated from the BADSC development repository, commit ${sourceCommit}.\nDo not edit website files here. Publish through the development repository.\n\nDeck files and share codes are processed entirely in the browser.\nThird-party license: [brotli-wasm](vendor/LICENSE).\n`);
   return release;

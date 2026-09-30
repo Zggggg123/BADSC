@@ -5,15 +5,15 @@ import { fileURLToPath } from 'node:url';
 import { webcrypto } from 'node:crypto';
 import { brotliCompressSync, brotliDecompressSync, deflateRawSync, constants } from 'node:zlib';
 
-const root = fileURLToPath(new URL('..', import.meta.url));
+const root = fileURLToPath(new URL('../..', import.meta.url));
 const dictRoot = path.join(root, 'web', 'dictionaries');
-globalThis.crypto = webcrypto;
+if (!globalThis.crypto) globalThis.crypto = webcrypto;
 globalThis.fetch = async (url) => {
   const value = String(url);
   const file = value.startsWith('file:') ? fileURLToPath(url) : path.join(dictRoot, path.basename(value));
   return new Response(await fs.readFile(file), { headers: { 'Content-Type': file.endsWith('.wasm') ? 'application/wasm' : 'application/json' } });
 };
-const { encodeShareCode } = await import('../web/codec.js');
+const { encodeShareCode } = await import('../../web/codec.js');
 
 async function* files(directory) {
   for (const entry of await fs.readdir(directory, { withFileTypes: true })) {

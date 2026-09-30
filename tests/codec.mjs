@@ -4,6 +4,7 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { webcrypto, createHash, createCipheriv, createDecipheriv } from 'node:crypto';
 import { brotliCompressSync } from 'node:zlib';
+import { syntheticFixtures } from './fixtures/synthetic-decks.mjs';
 
 const root = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const dictRoot = path.join(root, 'web', 'dictionaries');
@@ -55,11 +56,16 @@ async function rejects(fn, pattern) {
   try { await fn(); } catch (e) { if (pattern.test(e.message)) return; throw e; }
   throw new Error(`Expected rejection: ${pattern}`);
 }
-await walk(path.join(root, 'test_dek'));
-check(originalFiles.length === 471, 'Corpus count changed');
+const corpus = process.argv.includes('--corpus');
+if (corpus) {
+  await walk(path.join(root, 'test_dek'));
+  check(originalFiles.length === 471, 'Corpus count changed');
+}
+const fixtures = corpus
+  ? await Promise.all(originalFiles.map(async file => ({ file, raw: await fs.readFile(file) })))
+  : syntheticFixtures().map(({ name, bytes }) => ({ file: `synthetic/${name}`, raw: bytes }));
 const lengths = [], records = [], versions = { BADS2: 0, BADS3: 0 }, modes = {};
-for (const file of originalFiles) {
-  const raw = await fs.readFile(file);
+for (const { file, raw } of fixtures) {
   const code = await encodeShareCode(raw);
   const version = compactBytes(code)[0];
   versions[`BADS${version}`]++;
@@ -77,7 +83,7 @@ for (const file of originalFiles) {
   const filled = Object.values(deck.set2).flat().filter((card) => card.unitId !== undefined).length;
   records.push({ file, length: code.length, filled });
 }
-const sample = await fs.readFile(path.join(root, 'test_dek', 'MAIN', '近坦 海步.dek'));
+const sample = corpus ? await fs.readFile(path.join(root, 'test_dek', 'MAIN', '近坦 海步.dek')) : fixtures[0].raw;
 await rejects(() => decodeShareCode('BADS2:AAAA'), /旧版分享码已不支持/);
 const plain = nodePlain(sample);
 const deck = JSON.parse(plain.toString('utf8'));
@@ -105,9 +111,14 @@ check(Buffer.from((await decodeShareCode(await encodeShareCode(spaced))).origina
 const valid = await encodeShareCode(sample);
 check(compactBytes(valid)[0] === 3, 'Sample did not choose BADS3');
 await rejects(() => decodeShareCode('BADS3:AAAA'), /旧版分享码已不支持/);
-if (process.argv.includes('--update-sample')) await fs.writeFile(path.join(root, 'sample-share-code-current.txt'), valid + '\n');
+if (process.argv.includes('--update-sample')) {
+  check(corpus, '--update-sample requires --corpus');
+  await fs.writeFile(path.join(root, 'sample-share-code-current.txt'), valid + '\n');
+}
 const savedCurrent = (await fs.readFile(path.join(root, 'sample-share-code-current.txt'), 'utf8')).trimEnd();
-check(savedCurrent === valid && Buffer.from((await decodeShareCode(savedCurrent)).original).equals(sample), 'Saved current sample');
+const savedDecoded = await decodeShareCode(savedCurrent);
+check(await encodeShareCode(savedDecoded.original) === savedCurrent, 'Saved current sample reproducibility');
+if (corpus) check(savedCurrent === valid && Buffer.from(savedDecoded.original).equals(sample), 'Saved current sample');
 await rejects(() => decodeShareCode(mutateCode(valid, (body) => body.fill(255, 16, 24))), /缺少分享码指定的字典快照/);
 const altered = valid.slice(0, -1) + (valid.endsWith('A') ? 'B' : 'A');
 await rejects(() => decodeShareCode(altered), /校验失败|长度无效/);
@@ -143,7 +154,13 @@ try {
   await fs.writeFile(path.join(out, `${manifest.current}.json`), bad);
   await rejects(() => encodeShareCode(sample), /校验失败/);
   alternateRoot = null;
-} finally { alternateRoot = null; await fs.rm(tmp, { recursive: true, force: true }); }
+} finally {
+  alternateRoot = null;
+  const resolved = await fs.realpath(tmp);
+  const relative = path.relative(await fs.realpath(os.tmpdir()), resolved);
+  check(relative === path.basename(resolved) && relative.startsWith('badsc-v3-test-'), 'Temporary cleanup path escaped');
+  await fs.rm(resolved, { recursive: true, force: true });
+}
 
 const oversizedBody = Buffer.concat([sample.subarray(8, 24), compactBytes(valid).subarray(18, 26), Buffer.from([1]), brotliCompressSync(Buffer.alloc(2 * 1024 * 1024 + 1))]);
 await rejects(() => decodeShareCode(codeFromBody(oversizedBody)), /解压后过大/);

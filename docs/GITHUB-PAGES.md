@@ -15,13 +15,17 @@
 
 1. 修改 `web/`，双击 `启动网页.cmd` 预览。
 2. 测试并提交开发改动；发布脚本会拒绝含有未提交改动的开发仓库。
-3. 双击 `发布网站.cmd`，或者运行 `node tools/publish-site.mjs`。
+3. 维护者双击本机保留的 `发布网站.cmd`，或者运行 `node tools/publish-site.mjs`。
 4. 在网站仓库 Actions 页面确认 `pages build and deployment` 成功，再检查线上操作。
 5. 查看线上 `release.json` 的 `sourceCommit`，确认对应本次开发提交。
 
 脚本打印固定目标 `BADSC-web.git` 和 `main`，运行本地编解码回归，将 `web/` 的网页、字典和 vendor 资源复制到 `.publish/site/`，补上 `.nojekyll`、网站 README 和资源校验清单，然后在 `.publish/repository/` 创建或复用网站仓库、正常提交和推送。脚本不会推送开发仓库，也不会使用强制推送。
 
-`test_dek/` 没有纳入 Git。在没有本地语料的机器上会明确提示跳过语料回归；首次发布和重要转换改动应在保存语料的开发机器运行。
+`发布网站.cmd` 已从当前公开版本的 Git 跟踪中移除并加入 `.gitignore`，维护者本机文件继续保留。旧提交中仍能查看这个不含凭据的脚本；本次不改写历史。公开脚本不会授予任何网站写权限，推送仍须 GitHub 认证并拥有目标仓库权限。
+
+`site.config.json` 显式配置开发仓库、网站仓库、分支和网址；Fork 用户必须先改成自己的目标。脚本会拒绝配置与缓存仓库不匹配的情况。
+
+发布前始终运行公开合成样本和边界回归。`test_dek/` 没有纳入 Git，有本地语料时另外运行完整 471 份语料回归；缺少语料会明确提示，不把合成测试等同于完整语料验收。
 
 本机需要 Node.js 18+、Git 和有权限写入网站仓库的 GitHub 登录。Windows 上脚本优先使用标准安装的 Git 凭据管理器，配置仅作用于脚本的子进程，不改变全局 Git 配置。不保存访问令牌。
 
@@ -51,13 +55,13 @@ GitHub Pages 不应用 Cloudflare 的 `_headers` 文件，因此发布包不包�
 ## 线上验收
 
 ```sh
-node tools/verify-site.mjs https://zgggg.top/BADSC-web/
+node tests/browser.mjs https://zgggg.top/BADSC-web/
 node tools/check-site-release.mjs
 ```
 
-验收脚本需要 Node.js 20+、Playwright 和 Chrome；网站使用及发布仍支持 Node.js 18+。优先导入安装的 Playwright，也可通过 `BADSC_PLAYWRIGHT_PATH` 指定其模块入口。当前开发机可复用 WorkBuddy 中已有的 Playwright，不影响网站运行，也不会将此依赖上传到网站。
+验收脚本需要 Node.js 20+、Playwright 和 Chromium；网站使用及发布仍支持 Node.js 18+。先运行 `npm ci` 和 `npx playwright install chromium`。也可显式配置本机 Chrome 或外部 Playwright 模块，详见 [开发说明](DEVELOPMENT.md)。这些开发依赖不会上传到网站。
 
-检查五份真实样本的上传、完整分享码生成、点击复制、还原与实际下载，并将下载文件和原文件逐字节比较；检查语言切换与刷新保持、损坏输入处理、页面异常和资源加载。提供剪贴板权限的无头浏览器验收仍需配合日常浏览器手动检查。
+默认检查五份公开合成样本的上传、完整分享码生成、点击复制、还原与实际下载，并将下载文件和原文件逐字节比较；检查语言切换与刷新保持、损坏输入处理、页面异常和资源加载。有本地真实语料时可加 `--corpus`。提供剪贴板权限的无头浏览器验收仍需配合日常浏览器手动检查。
 
 `check-site-release.mjs` 从 `.publish/site/release.json` 读取本次预期发布记录，检查线上记录、所有资源 SHA-256、HTTPS 和 WASM MIME，验证实际部署的字节。先执行发布或打包才能检查；重新打包后记录会指向新的开发提交，需要再次发布才会与线上相同。
 

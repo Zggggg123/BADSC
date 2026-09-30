@@ -1,21 +1,16 @@
 // 真实浏览器验收：用 headless Chromium 打开页面，跑一次完整的编码/解码往返，
 // 并捕获 console 消息与页面错误。用于验证 web/ 在纯静态托管下能否独立工作。
-// ESM 不解析 NODE_PATH，这里显式从隔离工作区导入（仅验收脚本用，不影响仓库依赖）。
-const playwright = (await import('file:///C:/Users/Administrator/.workbuddy/binaries/node/workspace/node_modules/playwright/index.js')).default;
-const { chromium } = playwright;
+// 历史验收脚本，当前入口是 tests/browser.mjs。
+import { launchBrowser } from '../../tests/helpers/browser-runtime.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const base = process.argv[2] || 'http://127.0.0.1:8791';
 const label = process.argv[3] || 'static';
 
-const browser = await chromium.launch({
-  // 复用本机已有的 Chrome，避免额外下载 Playwright 自带浏览器。
-  executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-  channel: undefined,
-});
+const browser = await launchBrowser();
 const page = await browser.newPage();
 
 // 页面需要把 .dek 交给浏览器处理，这里用 setInputFiles 走真实的上传路径。

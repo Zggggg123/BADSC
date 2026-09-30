@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'web');
+const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '../..', 'web');
 const port = Number(process.argv[2] || 8793);
 const prefix = '/badsc';
 
@@ -40,4 +40,4 @@ const server = http.createServer((req, res) => {
   fs.createReadStream(filePath).pipe(res);
 });
 
-server.listen(port, '127.0.0.1', () => console.log(`[subpath] http://127.0.0.1:${port}${prefix}/`));
+server.listen(port, '127.0.0.1', () => console.log(`[subpath] http://127.0.0.1:${server.address().port}${prefix}/`));

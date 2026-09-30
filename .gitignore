@@ -4,6 +4,9 @@ node_modules/
 # 本地发布产物和独立网站仓库的缓存
 .publish/
 
+# 维护者本地发布入口，不进入公开仓库
+/发布网站.cmd
+
 # 测试样本：471 份 .dek 体量较大，仅本地保留
 test_dek/
 
@@ -16,3 +19,11 @@ Thumbs.db
 *.swp
 .idea/
 .vscode/
+
+# 本地认证与测试输出
+.env
+.env.*
+*.pem
+*.key
+playwright-report/
+test-results/

@@ -1,81 +1,83 @@
 # BADSC
 
-BADSC 是《Broken Arrow》卡组文件 `.dek` 与分享码双向转换的本地网页。上传卡组可复制分享码；粘贴分享码可下载逐字节还原的 `.dek` 文件。
+《Broken Arrow》卡组文件 `.dek` 与分享码的浏览器转换工具。
 
-## 快速开始
+**[在线使用](https://zgggg.top/BADSC-web/)** · [开发说明](docs/DEVELOPMENT.md) · [格式协议](docs/BADS3.md) · [MIT 许可证](LICENSE)
 
-在线使用：[BADSC 网站](https://zgggg.top/BADSC-web/)（[GitHub Pages 入口](https://zggggg123.github.io/BADSC-web/)会自动跳转）。在线转换也只在浏览器内进行，不会上传卡组文件或分享码。
+上传卡组生成完整的 `卡组名-内容码`；粘贴分享码后，可以下载逐字节还原的 `.dek` 文件。转换在浏览器内完成，不会上传或保存卡组文件、分享码；服务器只提供网页资源。
 
-下面是本地运行方式：
+## 使用方法
 
-需要 **Node.js 18 或更新版本**。Windows 用户双击 [启动网页.cmd](启动网页.cmd)；其他系统或习惯命令行的用户，在项目目录运行：
+1. 打开网站，选择或拖入 `.dek` 文件（最大 1 MB）。
+2. 核对卡组名称、阵营 ID、专精 ID 和卡片数量，点击“复制分享码”。
+3. 分享完整的 `卡组名-内容码`；只复制内容码不能还原。
+4. 接收者粘贴完整分享码，点击还原，再下载 `.dek`。
+
+右上角可以切换中英文，语言选择保存在浏览器本地。复制与编解码需要 HTTPS 或 localhost 安全环境；直接双击 HTML 文件不是受支持的运行方式。
+
+## 功能范围
+
+- 提供本地转换、基本信息显示、复制分享码与下载还原文件。
+- 不编辑卡组、不显示逐卡详情、不判断卡组在某个游戏补丁中能否使用。
+- 保留原文件中的数据，包括 `Logistic`；不使用字典名称或价格改写卡组。
+- 完整分享码长度随卡组而变化，不能保证小于 500 字符。
+- 校验和用于发现损坏，不是防恶意篡改的数字签名。
+- 当前入口不接受旧 `BADS2:` / `BADS3:` 前缀码；[当前分享码示例](sample-share-code-current.txt)可用于识别格式。
+
+当前字典来源为 [JohnJinHM/BA-Units](https://github.com/JohnJinHM/BA-Units)，快照标记为 `1.1.1.1 / 2026-08-08`，包含 1810 项改装数据。这是来源记录，不代表最新游戏数据库或卡组兼容性证明。分享码引用的历史字典必须继续保留，详见[协议与维护规则](docs/BADS3.md)。
+
+## 本地运行
+
+需要 Node.js 18+。克隆仓库后，在项目目录运行：
 
 ```sh
 node server.cjs
 ```
 
-然后打开 <http://127.0.0.1:8765/>。网页所需的 Brotli WASM 和字典快照已在仓库内，日常使用不需要执行 `npm install`。默认配置下服务仅监听本机地址；卡组文件和分享码在浏览器内处理，不会上传或保存到服务器。
+Windows 也可以双击 `启动网页.cmd`。浏览器打开 <http://127.0.0.1:8765/>；本地服务器只监听本机地址。日常使用不需要 `npm install`，Brotli WASM 和字典已随仓库提供。
 
-界面顶部提供中/英切换（右上角），选择会记在浏览器本地；顶栏 `GitHub` 按钮跳转到本仓库。
+## 开发与测试
 
-### 从卡组生成分享码
-
-1. 选择或拖入一个 `.dek` 文件（最大 1 MB）。
-2. 查看卡组名字、阵营 ID、两个专精 ID 和卡片数，点击“复制分享码”。
-3. 分享**完整的** `卡组名-内容码`，不要只复制连字符后面的内容。
-
-### 从分享码还原卡组
-
-1. 粘贴完整分享码，点击“确定并还原 .dek”。
-2. 核对页面显示的基本信息，点击“下载 .dek 文件”。
-
-（英文界面下按钮文案为 `Copy share code`、`Restore .dek`、`Download .dek`，功能相同。）
-
-页面不显示逐卡详情，不编辑卡组，也不判断卡组能否用于某个游戏版本。原文件中的 `Logistic` 等数据会保留；转换不会用数据库名称或价格改写卡组内容。
-
-## 分享码与兼容范围
-
-- 当前网页生成 `卡组名-内容码` 形式的分享码。编码器比较内部 BADS3 和 BADS2 表示的完整长度，选较短的一种；内容码不显示文字版本前缀。
-- 旧 `BADS2:` / `BADS3:` 前缀码不能直接导入当前网页。[当前格式示例](sample-share-code-current.txt) 可用于识别格式；[旧格式样本](docs/legacy-share-codes) 仅作开发记录。
-- 完整分享码的长度随卡组变化，不能保证少于 500 字符。校验和用于发现损坏，不是防恶意篡改的签名。
-- 当前字典快照来自 [JohnJinHM/BA-Units](https://github.com/JohnJinHM/BA-Units) 的公开 `Options.json`，来源标记为 **1.1.1.1、2026-08-08**，包含 1810 项改装数据。这些元数据不证明它是最新游戏数据库，也不证明卡组兼容特定补丁。
-- BADS3 分享码记录其字典快照 ID。解码时网页按 ID 加载并校验对应快照；若将来发布新版字典，需要保留已发布分享码依赖的旧快照。当前仓库只有一版字典。
-
-格式与字典生命周期见 [BADS3 协议与维护](docs/BADS3.md)。项目目前暂停进一步的编码压缩优化；既有测量结果保存在 [分享码长度试验记录](docs/COMPRESSION-RESEARCH.md)。
-
-## 网站发布
-
-开发仓库为 `Zggggg123/BADSC`，正式网站文件保存在独立的 [BADSC-web](https://github.com/Zggggg123/BADSC-web) 仓库，由 GitHub Pages 发布其 `main` 分支根目录。
-
-修改后先本地预览、测试并提交开发改动，再双击 [发布网站.cmd](发布网站.cmd)。发布脚本会运行本地编解码回归、生成静态站点并推送到网站仓库；不会推送开发仓库。线上更新通常需要等待 Pages 部署完成。
-
-只生成本地预览产物：`node tools/build-site.mjs --preview`。产物与网站仓库缓存位于被 Git 忽略的 `.publish/`。每次发布包含 `release.json`，记录开发提交和资源 SHA-256。详细流程见 [GitHub Pages 发布说明](docs/GITHUB-PAGES.md)。
-
-## 开发与验证
-
-运行主要的浏览器编解码测试：
+基础编解码测试使用仓库内的五份合成样本，不依赖未公开卡组，也不需要安装依赖：
 
 ```sh
-node tools/browser-codec-test.mjs
-node tools/bads3-test.mjs
+npm test
 ```
 
-`bads3-test.mjs` 使用仓库内 `test_dek` 的 471 份样本检查编解码与原文件逐字节往返，并覆盖名称、字段差异、未知结构、字典缺失或篡改及损坏输入等边界。长度实验可分别运行 `node tools/analyze-content-code.mjs` 和 `node tools/analyze-structure-dictionaries.mjs`；它们不会修改正式格式。
+合成样本覆盖结构化数据、中文名称、未知字段、不同排版和字典未命中，并检查逐字节往返、损坏输入及字典生命周期等边界。它们不是可用于游戏的卡组。
 
-已有的 [更新字典.cmd](更新字典.cmd) 和 `tools/build-dictionary.cjs` 可从 BA-Units 提取器产出的 `Options.json` 构建本地快照。例如：
+浏览器开发建议使用 Node.js 22+，需要安装锁定依赖和 Chromium：
 
 ```sh
-node tools/build-dictionary.cjs path/to/Options.json --version 1.1.1.1 --date 2026-08-08
+npm ci
+npx playwright install chromium
+npm run test:browser
 ```
 
-版本号和日期应填写实际来源信息。构建新字典并不自动发布网页；未来字典升级的数据来源和发布流程仍待决定。快照规则见 [BADS3 协议与维护](docs/BADS3.md)。
+完整 471 份本地语料没有纳入 Git。有语料的维护者可以另外运行 `npm run test:corpus`。环境配置、真实浏览器测试与字典更新说明见 [DEVELOPMENT.md](docs/DEVELOPMENT.md)。
 
-## 部署上线
+## 仓库结构
 
-`web/` 是自包含的静态站点，不依赖 `server.cjs`，可发布到任意静态托管（Cloudflare Pages、Netlify、GitHub Pages 等）。根路径和子路径都能部署。
+```text
+web/                   正式网页、编解码、字典、内置 WASM
+tests/                 编解码与浏览器测试
+  fixtures/            合成样本生成器
+  helpers/             测试服务器与浏览器依赖入口
+tools/                 字典构建、静态打包与维护工具
+  experiments/         历史压缩实验，不接入正式网页
+  archive/             已被替代的历史工具
+docs/                  协议、开发、部署说明
+  archive/             历史研究记录
+  legacy-share-codes/   旧格式样本
+licenses/              第三方许可证
+```
 
-发布目录选 `web/`；上线检查清单、响应头建议与验收脚本见 [部署检查清单](docs/DEPLOYMENT.md)。
+源码维护在本仓库，正式网站文件独立保存在 [BADSC-web](https://github.com/Zggggg123/BADSC-web)。维护者的本地发布启动器不进入当前公开版本；Fork 自行部署请先修改 `site.config.json`，详见[发布说明](docs/GITHUB-PAGES.md)。网站仓库写权限由 GitHub 管理，不由脚本授予。
 
-## 当前未验证
+## 许可证与来源
 
-尚未验证生成的分享码在其他游戏补丁中的可导入性，也未接入更新版数据库。浏览器上传、复制与下载交互已在无头 Chrome 中覆盖（见部署检查清单第六节），但复制按钮依赖 `navigator.clipboard`，仍需在带用户手势的常规浏览器中复核；编解码测试通过不能代替这项交互验收。
+原创代码和文档采用 [MIT](LICENSE)。内置 `brotli-wasm`、字典数据来源和游戏内容的边界见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)，第三方许可证不会被项目 MIT 许可证替代。
+
+这是独立社区工具，不是官方游戏服务。欢迎通过 Issue 报告转换问题；贡献前请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。请使用合成样本或自行确认可以公开的卡组，避免提交个人信息。
+
+当前分享码格式已冻结，暂不继续扩展编码压缩方案。[历史试验记录](docs/archive/COMPRESSION-RESEARCH.md)仅用于追溯。常规浏览器手动验收、国内不同网络的访问效果和其他游戏补丁的兼容性仍需独立验证。

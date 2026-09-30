@@ -116,7 +116,7 @@ HTTP 404 http://127.0.0.1:8793/app.js
 ## 五、已知可优化项（非阻塞）
 
 1. **字典 JSON 未压缩**。`web/dictionaries/2d60d18a6a896cb6.json` 为 43 KB 明文。
-   `docs/COMPRESSION-RESEARCH.md` 已记录「当前静态服务器不压缩 JSON」。
+   `docs/archive/COMPRESSION-RESEARCH.md` 已记录「当前静态服务器不压缩 JSON」。
    上线后若平台支持，应开启 Brotli/gzip 预压缩，或预生成 `.json.br`。
 2. **`Cache-Control: no-store` 通吃**，见第二节的分级建议。
 3. **favicon 缺失**。浏览器会请求 `/favicon.ico` 得到 404。无害，但可在
@@ -129,14 +129,15 @@ HTTP 404 http://127.0.0.1:8793/app.js
 ls web/dictionaries web/vendor/pkg.web
 
 # 2. 本地模拟静态托管（该脚本故意不为 .wasm 返回正确 MIME，用于验证降级路径）
-node tools/_accept-static-server.mjs 8791 wrong
+node tests/helpers/static-server.mjs 8791 wrong
 
 # 3. 真实浏览器验收：上传 5 份样本 + 一次完整往返
-node tools/_accept-browser-check.mjs http://127.0.0.1:8791 static-wrong-mime
+node tools/archive/browser-check.mjs http://127.0.0.1:8791 static-wrong-mime
 ```
 
-`_accept-browser-check.mjs` 需要 Playwright。它从 WorkBuddy 隔离工作区导入，并复用本机
-Chrome，不向仓库引入依赖。验收输出中 `pageErrors` 必须为空数组。
+`tools/archive/browser-check.mjs` 为历史工具，已改用通用 Playwright 入口。当前验收使用
+`npm run test:browser`，依赖和可选浏览器配置见 `docs/DEVELOPMENT.md`。验收输出中
+`pageErrors` 必须为空数组，实际下载字节也必须一致。
 
 线上部署后，把 `base` 换成线上 URL 再跑一次即可。
 
@@ -145,10 +146,10 @@ Chrome，不向仓库引入依赖。验收输出中 `pageErrors` 必须为空数
 改动站点资源后，回归基线是项目自带的编解码测试：
 
 ```sh
-node tools/bads3-test.mjs
+node tests/codec.mjs --corpus
 ```
 
 当前基线（471 份样本，全部通过）：长度中位 411、p90 461、最大 799、457 份在 500 字符内。
 
 Node 18 与 Node 22+ 均可运行。脚本原先直接给 `globalThis.crypto` 赋值，在 Node 22 下会因
-该属性是只读 getter 而抛 `TypeError`；已改为仅在缺失时兜底（`tools/bads3-test.mjs`）。
+该属性是只读 getter 而抛 `TypeError`；已改为仅在缺失时兜底（`tests/codec.mjs --corpus`）。

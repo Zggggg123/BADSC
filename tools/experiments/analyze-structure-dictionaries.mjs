@@ -4,10 +4,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createDecipheriv, webcrypto } from 'node:crypto';
 import { brotliCompressSync, constants } from 'node:zlib';
-import { encodePacked, decodePacked } from '../web/bads3-binary.js';
-import { encodeColumns, decodeColumns } from '../web/bads3-columns.js';
+import { encodePacked, decodePacked } from '../../web/bads3-binary.js';
+import { encodeColumns, decodeColumns } from '../../web/bads3-columns.js';
 
-const root = fileURLToPath(new URL('..', import.meta.url));
+const root = fileURLToPath(new URL('../..', import.meta.url));
 const categories = ['Recon', 'Infantry', 'GroundCombatVehicles', 'Support', 'Logistic', 'Helicopters', 'Aircrafts'];
 const schemas = [
   ['unitId', 'cat', 'slot', 'tranId', 'modList', 'modListTr', 'count', 'tranCount'],
@@ -21,13 +21,13 @@ const modFields = ['modId', 'optId', 'cost', 'run', 'cwun', 'type'];
 const key = Buffer.from('09234237536700238099172758697347');
 const dictionaryManifest = JSON.parse(await fs.readFile(path.join(root, 'web/dictionaries/manifest.json')));
 const dictionary = JSON.parse(await fs.readFile(path.join(root, 'web/dictionaries', `${dictionaryManifest.current}.json`)));
-globalThis.crypto = webcrypto;
+if (!globalThis.crypto) globalThis.crypto = webcrypto;
 globalThis.fetch = async (url) => {
   const value = String(url);
   const file = value.startsWith('file:') ? fileURLToPath(url) : path.join(root, 'web/dictionaries', path.basename(value));
   return new Response(await fs.readFile(file), { headers: { 'Content-Type': file.endsWith('.wasm') ? 'application/wasm' : 'application/json' } });
 };
-const { encodeShareCode } = await import('../web/codec.js');
+const { encodeShareCode } = await import('../../web/codec.js');
 
 async function* files(dir) {
   for (const entry of await fs.readdir(dir, { withFileTypes: true })) {

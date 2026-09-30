@@ -208,9 +208,9 @@ if (require.main === module) {
     process.stdout.write(`Exact round trips: ${count}; code length min/median/max: `
       + `${lengths[0]}/${lengths[Math.floor(lengths.length / 2)]}/${lengths.at(-1)}\n`);
   } else {
-    process.stderr.write('Usage: node tools/share-code-prototype.cjs encode file.dek\n'
-      + '       node tools/share-code-prototype.cjs decode BADS2:... output.dek\n'
-      + '       node tools/share-code-prototype.cjs selftest test_dek\n');
+    process.stderr.write('Usage: node tools/experiments/share-code-prototype.cjs encode file.dek\n'
+      + '       node tools/experiments/share-code-prototype.cjs decode BADS2:... output.dek\n'
+      + '       node tools/experiments/share-code-prototype.cjs selftest test_dek\n');
     process.exitCode = 2;
   }
 }

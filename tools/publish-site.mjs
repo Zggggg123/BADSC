@@ -2,20 +2,21 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { buildSite, root, output } from './build-site.mjs';
-import { git, repository, siteUrl } from './site-git.mjs';
+import { git, repository, siteUrl, branch } from './site-git.mjs';
 
 try {
-  console.log(`发布目标：${repository}\n发布分支：main\n网站：${siteUrl}`);
+  console.log(`发布目标：${repository}\n发布分支：${branch}\n网站：${siteUrl}`);
   const release = buildSite();
-  // 发布前运行编解码回归。有本地样本时覆盖完整语料，否则至少检查每份发布资源。
-  if (fs.existsSync(path.join(root, 'test_dek', 'MAIN', '近坦 海步.dek'))) {
-    for (const script of ['browser-codec-test.mjs', 'bads3-test.mjs']) {
-      const result = spawnSync(process.execPath, [path.join(root, 'tools', script)], {
+  // 始终运行公开合成样本与边界回归；有本地语料时再检查完整样本。
+  const commands = [['browser-codec.mjs'], ['codec.mjs']];
+  if (fs.existsSync(path.join(root, 'test_dek', 'MAIN', '近坦 海步.dek'))) commands.push(['codec.mjs', '--corpus']);
+  else console.log('未找到本地 test_dek 样本；仍运行公开合成样本回归。');
+  for (const [script, ...args] of commands) {
+      const result = spawnSync(process.execPath, [path.join(root, 'tests', script), ...args], {
         cwd: root, stdio: 'inherit', windowsHide: true,
       });
       if (result.error || result.status !== 0) throw new Error(`回归失败：${script}`);
-    }
-  } else console.log('未找到本地 test_dek 样本；本次不运行语料回归。');
+  }
   const checkout = path.join(root, '.publish', 'repository');
   if (fs.existsSync(checkout) && fs.lstatSync(checkout).isSymbolicLink()) throw new Error('网站仓库缓存不能是符号链接');
   if (!fs.existsSync(checkout)) git(['clone', repository, checkout], root);
@@ -24,9 +25,9 @@ try {
   const hasCommit = git(['rev-parse', '--verify', 'HEAD'], checkout, { allowFailure: true }).ok;
   git(['fetch', 'origin'], checkout);
   if (hasCommit) {
-    if (git(['branch', '--show-current'], checkout).output !== 'main') throw new Error('网站仓库必须使用 main 分支');
-    git(['merge', '--ff-only', 'origin/main'], checkout);
-  } else git(['switch', '-C', 'main'], checkout);
+    if (git(['branch', '--show-current'], checkout).output !== branch) throw new Error('网站仓库分支与配置不匹配');
+    git(['merge', '--ff-only', `origin/${branch}`], checkout);
+  } else git(['switch', '-C', branch], checkout);
 
   // 只删除由本脚本管理的旧文件；没有发布记录的非空仓库不能覆盖。
   const tracked = git(['ls-files', '-z'], checkout).output.split('\0').filter(Boolean);
@@ -46,6 +47,6 @@ try {
   git(['add', '--all'], checkout);
   if (git(['diff', '--cached', '--quiet'], checkout, { allowFailure: true }).ok) console.log('网页资源未变化。');
   else git(['commit', '-m', `Publish BADSC from ${release.sourceCommit.slice(0, 12)}`], checkout);
-  git(['push', 'origin', 'HEAD:main'], checkout);
+  git(['push', 'origin', `HEAD:${branch}`], checkout);
   console.log(`网站仓库已更新。等待 GitHub Pages 部署完成后访问：${siteUrl}\n线上版本可查看：${siteUrl}release.json`);
 } catch (error) { console.error(`发布未完成：${error.message}`); process.exitCode = 1; }

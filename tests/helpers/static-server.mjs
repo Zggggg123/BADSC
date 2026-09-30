@@ -1,12 +1,12 @@
 // 验收用静态服务器：故意不为 .wasm 返回 application/wasm，
 // 以模拟 GitHub Pages 等平台的行为，验证客户端的降级路径是否真的可用。
-// 用法：node tools/_accept-static-server.mjs <端口> <wasm模式 correct|wrong>
+// 用法：node tests/helpers/static-server.mjs <端口> <wasm模式 correct|wrong>
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'web');
+const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '../..', 'web');
 const port = Number(process.argv[2] || 8791);
 const wasmMode = process.argv[3] === 'wrong' ? 'wrong' : 'correct';
 

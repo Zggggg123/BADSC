@@ -2,8 +2,14 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
-export const repository = 'https://github.com/Zggggg123/BADSC-web.git';
-export const siteUrl = 'https://zggggg123.github.io/BADSC-web/';
+export const siteConfig = JSON.parse(fs.readFileSync(new URL('../site.config.json', import.meta.url), 'utf8'));
+export const repository = siteConfig.publishRepository;
+export const siteUrl = siteConfig.siteUrl;
+export const branch = siteConfig.branch;
+if (!/^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\.git$/.test(repository) ||
+    !/^[\w.-]+$/.test(branch) || !siteUrl.startsWith('https://')) {
+  throw new Error('site.config.json 的发布目标无效');
+}
 
 export function git(args, cwd, { allowFailure = false } = {}) {
   const env = { ...process.env, GIT_TERMINAL_PROMPT: '0', GCM_INTERACTIVE: 'never' };
