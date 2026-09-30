@@ -5,7 +5,9 @@ import { fileURLToPath } from 'node:url';
 import { webcrypto, createCipheriv, createDecipheriv } from 'node:crypto';
 import { brotliDecompressSync } from 'node:zlib';
 
-globalThis.crypto = webcrypto;
+// Node 22 起 globalThis.crypto 是只读 getter，直接赋值会抛 TypeError。
+// 只在尚未提供时兜底，Node 18 与 Node 22+ 都能运行。
+if (!globalThis.crypto) globalThis.crypto = webcrypto;
 globalThis.fetch = async (url) => {
   const name = String(url);
   const file = name.startsWith('file:')

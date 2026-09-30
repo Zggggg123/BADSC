@@ -8,7 +8,9 @@ import { brotliCompressSync } from 'node:zlib';
 const root = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const dictRoot = path.join(root, 'web', 'dictionaries');
 let alternateRoot = null;
-globalThis.crypto = webcrypto;
+// Node 22 起 globalThis.crypto 是只读 getter，直接赋值会抛 TypeError。
+// 只在尚未提供时兜底，Node 18 与 Node 22+ 都能运行。
+if (!globalThis.crypto) globalThis.crypto = webcrypto;
 globalThis.fetch = async (url) => {
   const name = String(url);
   let file;
