@@ -73,6 +73,6 @@ function main(args) {
   manifest.current = id;
   atomicWrite(indexFile, JSON.stringify(manifest, null, 2) + '\n');
   console.log(`字典 ${id}：${entries.length} 项；来源版本 ${version}；Options SHA-256 ${snapshot.source.optionsSha256}`);
-  console.log(`已保留 ${manifest.snapshots.length} 个可解码快照。只更新本地静态资源，未发布网站。`);
+  console.log(`已保留 ${manifest.snapshots.length} 个可解码快照。已更新本地 web/dictionaries/ 资源。`);
 }
 try { main(process.argv.slice(2)); } catch (error) { console.error(error.message); process.exitCode = 1; }

@@ -26,15 +26,15 @@ npm run test:browser
 
 脚本会自动启动随机端口的本机子路径服务器，完成五份合成样本的上传、复制、还原与下载字节比较，检查语言切换、刷新保持、损坏输入和资源错误，结束后关闭服务器。剪贴板权限仅授予这个测试浏览器会话。
 
-指定网站进行同样的验收：
+指定已启动的本机服务进行同样的验收：
 
 ```sh
-node tests/browser.mjs https://zgggg.top/BADSC-web/
+node tests/browser.mjs http://127.0.0.1:8765/
 ```
 
 默认使用 Playwright 安装的 Chromium。可用环境变量 `BADSC_BROWSER_CHANNEL=chrome` 选择本机 Chrome，或者用 `BADSC_BROWSER_EXECUTABLE` 指定浏览器路径。若复用外部安装的 Playwright，可用 `BADSC_PLAYWRIGHT_PATH` 显式指定模块入口；代码没有默认的本机用户目录。
 
-输出截图放在被 Git 忽略的 `.publish/`。无头浏览器验收不能替代常规浏览器和不同网络环境的手动验证。
+输出截图放在被 Git 忽略的 `test-results/`。无头浏览器验收不能替代常规浏览器的手动验证。
 
 ## 私有完整语料
 
@@ -42,10 +42,10 @@ node tests/browser.mjs https://zgggg.top/BADSC-web/
 
 ```sh
 npm run test:corpus
-node tests/browser.mjs https://zgggg.top/BADSC-web/ --corpus
+node tests/browser.mjs --corpus
 ```
 
-`--corpus` 明确启用完整语料回归；缺失语料会失败，不会伪装成通过。当前本地基线仍要求 471 份，样本名和历史分享码示例只用于维护者的基线检查。
+`--corpus` 明确启用本地语料；缺失语料会失败，不会伪装成通过。`test:corpus` 检查完整 471 份基线，浏览器脚本从语料中选取五份进行交互测试；样本名和历史分享码示例只用于维护者的基线检查。
 
 ## 更新字典
 
@@ -55,7 +55,15 @@ node tests/browser.mjs https://zgggg.top/BADSC-web/ --corpus
 node tools/build-dictionary.cjs path/to/Options.json --version 1.1.1.1 --date 2026-08-08
 ```
 
-版本和日期应填写输入的实际来源。构建会校验字段并保存内容寻址快照；旧快照不可覆盖或删除。新快照需要重新测试并单独发布，不能把来源版本当成兼容性判断。
+版本和日期应填写输入的实际来源。构建会校验字段并保存内容寻址快照；旧快照不可覆盖或删除。新快照需要重新测试，不能把来源版本当成兼容性判断。
+
+## 浏览器资源约定
+
+`web/` 必须自包含，资源路径保持相对引用，使本机根路径与 `/badsc/` 子路径都能加载完整资源。`server.cjs` 仅提供文件并监听本机地址，转换在浏览器中完成。
+
+`index.html` 的 meta CSP 与本地服务器 CSP 保留 `script-src 'self' 'wasm-unsafe-eval'` 和 `connect-src 'self'`，分别允许 WASM 编译与本站字典读取。WASM 的正常 MIME 是 `application/wasm`；内置加载器遇到错误 MIME 时会降级到普通实例化，`tests/helpers/static-server.mjs` 可在本机验证此路径。
+
+维护者合并涉及网页的 PR 后，独立决定何时将完整 `web/` 同步到 BADSC-web。部署流程在网站仓库管理，贡献者只需完成本地开发与测试。历史字典快照及第三方许可证必须随资源保留。
 
 ## 历史实验
 

@@ -1,5 +1,4 @@
-// 验证子路径部署：把 web/ 当作 /badsc/ 提供，确认相对路径引用仍然正确。
-// 这是"能否部署到 example.com/badsc/"这一判断的实测依据。
+// 本机子路径测试：把 web/ 当作 /badsc/ 提供，确认相对路径引用仍然正确。
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';

@@ -1,14 +1,14 @@
 # BADSC
 
-《Broken Arrow》卡组文件 `.dek` 与分享码的浏览器转换工具。
+本地运行、基于浏览器的《Broken Arrow》卡组文件 `.dek` 与分享码转换工具。
 
-**[在线使用](https://zgggg.top/BADSC-web/)** · [开发说明](docs/DEVELOPMENT.md) · [格式协议](docs/BADS3.md) · [MIT 许可证](LICENSE)
+**[本地运行](#本地运行)** · [在线体验](https://zgggg.top/BADSC-web/) · [开发说明](docs/DEVELOPMENT.md) · [格式协议](docs/BADS3.md) · [MIT 许可证](LICENSE)
 
 上传卡组生成完整的 `卡组名-内容码`；粘贴分享码后，可以下载逐字节还原的 `.dek` 文件。转换在浏览器内完成，不会上传或保存卡组文件、分享码；服务器只提供网页资源。
 
 ## 使用方法
 
-1. 打开网站，选择或拖入 `.dek` 文件（最大 1 MB）。
+1. 按下方“本地运行”启动工具，在浏览器选择或拖入 `.dek` 文件（最大 1 MB）。
 2. 核对卡组名称、阵营 ID、专精 ID 和卡片数量，点击“复制分享码”。
 3. 分享完整的 `卡组名-内容码`；只复制内容码不能还原。
 4. 接收者粘贴完整分享码，点击还原，再下载 `.dek`。
@@ -63,16 +63,18 @@ web/                   正式网页、编解码、字典、内置 WASM
 tests/                 编解码与浏览器测试
   fixtures/            合成样本生成器
   helpers/             测试服务器与浏览器依赖入口
-tools/                 字典构建、静态打包与维护工具
+tools/                 字典构建与维护工具
   experiments/         历史压缩实验，不接入正式网页
   archive/             已被替代的历史工具
-docs/                  协议、开发、部署说明
+docs/                  协议与开发说明
   archive/             历史研究记录
   legacy-share-codes/   旧格式样本
 licenses/              第三方许可证
 ```
 
-源码维护在本仓库，正式网站文件独立保存在 [BADSC-web](https://github.com/Zggggg123/BADSC-web)。维护者的本地发布启动器不进入当前公开版本；Fork 自行部署请先修改 `site.config.json`，详见[发布说明](docs/GITHUB-PAGES.md)。网站仓库写权限由 GitHub 管理，不由脚本授予。
+本仓库负责本地工具的开发、测试与贡献。贡献者向 BADSC 提交 PR，维护者审查并合并。涉及网页的修改通过测试后，由维护者独立决定何时将完整 `web/` 同步到 [BADSC-web](https://github.com/Zggggg123/BADSC-web)；仅修改开发文档或工具时无需更新网站。网站部署配置与流程由 BADSC-web 管理。
+
+`web/` 是自包含的浏览器资源目录，使用相对路径，包含编解码、字典历史快照、WASM 和第三方许可证。迁移时须保留完整目录及许可证，不依赖本仓库的测试或维护工具。网站的 GitHub 链接指向 BADSC，作为源码、Issue 与 PR 入口。
 
 ## 许可证与来源
 
@@ -80,4 +82,4 @@ licenses/              第三方许可证
 
 这是独立社区工具，不是官方游戏服务。欢迎通过 Issue 报告转换问题；贡献前请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。请使用合成样本或自行确认可以公开的卡组，避免提交个人信息。
 
-当前分享码格式已冻结，暂不继续扩展编码压缩方案。[历史试验记录](docs/archive/COMPRESSION-RESEARCH.md)仅用于追溯。常规浏览器手动验收、国内不同网络的访问效果和其他游戏补丁的兼容性仍需独立验证。
+当前分享码格式已冻结，暂不继续扩展编码压缩方案。[历史试验记录](docs/archive/COMPRESSION-RESEARCH.md)仅用于追溯。常规浏览器手动验收和其他游戏补丁的兼容性仍需独立验证。

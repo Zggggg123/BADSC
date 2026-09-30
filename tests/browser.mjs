@@ -81,7 +81,7 @@ try {
   assert.equal(await page.locator('#download-section').isVisible(), false);
   assert.deepEqual(errors, [], '页面不应有错误');
   assert.deepEqual(failures, [], '站点资源请求必须成功');
-  const output = path.join(root, '.publish');
+  const output = path.join(root, 'test-results');
   fs.mkdirSync(output, { recursive: true });
   const screenshot = path.join(output, base.hostname === '127.0.0.1' ? 'local.png' : 'online.png');
   await page.screenshot({ path: screenshot, fullPage: true });

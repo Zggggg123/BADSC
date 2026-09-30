@@ -11,11 +11,7 @@
     "start": "node server.cjs",
     "test": "node tests/browser-codec.mjs && node tests/codec.mjs",
     "test:corpus": "node tests/codec.mjs --corpus",
-    "test:browser": "node tests/browser.mjs",
-    "build:site": "node tools/build-site.mjs",
-    "preview:site": "node tools/build-site.mjs --preview",
-    "publish:site": "node tools/publish-site.mjs",
-    "check:site": "node tools/check-site-release.mjs"
+    "test:browser": "node tests/browser.mjs"
   },
   "dependencies": {
     "brotli-wasm": "3.0.1"
