@@ -1,12 +1,41 @@
 import { MAX_DEK_BYTES, decodeDek, encodeShareCode, decodeShareCode, parseDeck } from './codec.js';
+import { messages, detectLang, persistLang } from './i18n.js';
 
 const $ = (id) => document.getElementById(id);
+let lang = detectLang();
 let downloadBytes = null;
 let downloadName = '';
 let conversionId = 0;
+// 当前结果状态：语言切换时要原样重绘，而不是清空重来。
+let view = { kind: 'empty', deck: null, source: null, code: '', filename: '', error: null, statusKey: 'statusIdle', statusError: false };
 
-function setStatus(message, isError = false) {
-  $('status').textContent = message;
+/** 取当前语言文案；函数型词条（如字符数）用参数求值。 */
+const t = (key, ...args) => {
+  const value = messages[lang][key];
+  return typeof value === 'function' ? value(...args) : value;
+};
+
+function applyStaticText() {
+  document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+  document.title = t('title');
+  for (const node of document.querySelectorAll('[data-i18n]')) {
+    node.textContent = t(node.dataset.i18n);
+  }
+  for (const node of document.querySelectorAll('[data-i18n-placeholder]')) {
+    node.placeholder = t(node.dataset.i18nPlaceholder);
+  }
+  for (const node of document.querySelectorAll('[data-i18n-aria]')) {
+    node.setAttribute('aria-label', t(node.dataset.i18nAria));
+  }
+  for (const option of document.querySelectorAll('.lang-option')) {
+    option.classList.toggle('is-active', option.dataset.lang === lang);
+  }
+}
+
+function setStatus(key, isError = false) {
+  view.statusKey = key;
+  view.statusError = isError;
+  $('status').textContent = t(key);
   $('status').classList.toggle('error', isError);
 }
 
@@ -14,49 +43,63 @@ function valueText(value) {
   return value === undefined || value === null || value === '' ? '—' : String(value);
 }
 
-function clearResult(message = '上传文件后可复制分享码；输入分享码后可下载 .dek。') {
+function resetView() {
   downloadBytes = null;
   downloadName = '';
-  $('generated-code').value = '';
-  $('code-length').textContent = '';
-  $('download-filename').textContent = '';
-  $('deck-name').textContent = '';
-  for (const id of ['deck-country', 'deck-spec1', 'deck-spec2', 'deck-count']) $(id).textContent = '';
-  $('source-tag').textContent = '';
-  $('source-tag').classList.add('hidden');
-  $('overview-content').classList.add('hidden');
-  $('share-section').classList.add('hidden');
-  $('download-section').classList.add('hidden');
-  $('overview-empty').classList.remove('hidden');
-  $('output-empty').classList.remove('hidden');
-  $('overview-empty').querySelector('p').textContent = '转换后，卡组信息将在这里显示。';
-  $('output-empty').querySelector('p').textContent = message;
-  $('result-kind').textContent = '等待转换';
+  view = { kind: 'empty', deck: null, source: null, code: '', filename: '', error: null, statusKey: 'statusIdle', statusError: false };
 }
 
-function renderDeck(deck, source) {
-  const cards = Object.values(deck.set2).reduce((sum, group) => sum + (Array.isArray(group) ? group.length : 0), 0);
-  $('deck-name').textContent = valueText(deck.name);
-  $('deck-country').textContent = valueText(deck.country);
-  $('deck-spec1').textContent = valueText(deck.spec1);
-  $('deck-spec2').textContent = valueText(deck.spec2);
-  $('deck-count').textContent = String(cards);
-  $('source-tag').textContent = source === 'upload' ? '来自 .dek' : '来自分享码';
-  $('source-tag').classList.remove('hidden');
-  $('overview-empty').classList.add('hidden');
-  $('overview-content').classList.remove('hidden');
-  $('output-empty').classList.add('hidden');
+/** 单一渲染入口：所有 DOM 状态都由 view 推导，语言切换复用同一函数。 */
+function render() {
+  const hasDeck = view.deck !== null;
+  $('overview-empty').textContent = view.kind === 'error' ? t('failNoOverview') : t('overviewEmpty');
+  $('output-empty').textContent = view.kind === 'error' ? t('failRetry') : t('outputEmpty');
+  $('overview-empty').classList.toggle('hidden', hasDeck);
+  $('output-empty').classList.toggle('hidden', hasDeck);
+
+  $('overview-content').classList.toggle('hidden', !hasDeck);
+  if (hasDeck) {
+    $('deck-name').textContent = valueText(view.deck.name);
+    $('deck-country').textContent = valueText(view.deck.country);
+    $('deck-spec1').textContent = valueText(view.deck.spec1);
+    $('deck-spec2').textContent = valueText(view.deck.spec2);
+    $('deck-count').textContent = String(view.deck.cards);
+    $('source-tag').textContent = view.source === 'upload' ? t('fromUpload') : t('fromCode');
+    $('source-tag').classList.remove('hidden');
+  } else {
+    $('source-tag').classList.add('hidden');
+  }
+
+  $('share-section').classList.toggle('hidden', view.kind !== 'code');
+  if (view.kind === 'code') {
+    $('generated-code').value = view.code;
+    $('code-length').textContent = t('charCount', view.code.length);
+  }
+
+  $('download-section').classList.toggle('hidden', view.kind !== 'deck');
+  if (view.kind === 'deck') $('download-filename').textContent = view.filename;
+
+  $('status').textContent = t(view.statusKey);
+  $('status').classList.toggle('error', view.statusError);
+}
+
+function countCards(deck) {
+  return Object.values(deck.set2).reduce((sum, group) => sum + (Array.isArray(group) ? group.length : 0), 0);
 }
 
 function friendlyError(error) {
-  if (error instanceof SyntaxError) return '卡组内容格式无效，无法读取基本信息。';
-  if (error instanceof Error) return error.message;
-  return '转换失败，请检查输入后重试。';
+  if (error instanceof SyntaxError) return 'errSyntax';
+  // codec.js 抛出的原始错误是中文文案，英文界面下无法逐句翻译，
+  // 因此只认我们自己打的标记，其余统一走通用提示。
+  if (error instanceof Error && error.badscKey) return error.badscKey;
+  return 'errGeneric';
 }
 
+const fail = (key) => Object.assign(new Error(key), { badscKey: key });
+
 async function convertFile(file) {
-  if (!file || !file.name.toLowerCase().endsWith('.dek')) throw new Error('请选择 .dek 文件。');
-  if (file.size > MAX_DEK_BYTES) throw new Error('.dek 文件不能超过 1 MB。');
+  if (!file || !file.name.toLowerCase().endsWith('.dek')) throw fail('errPickDek');
+  if (file.size > MAX_DEK_BYTES) throw fail('errTooLarge');
   const original = new Uint8Array(await file.arrayBuffer());
   const { plain } = await decodeDek(original);
   const deck = parseDeck(plain);
@@ -66,46 +109,51 @@ async function convertFile(file) {
 
 async function convertCode() {
   const code = $('code-input').value.trimEnd();
-  if (!code.trim()) throw new Error('请先粘贴完整分享码。');
+  if (!code.trim()) throw fail('errEmptyCode');
   const { original, plain } = await decodeShareCode(code);
   const deck = parseDeck(plain);
-  const filename = String(deck.name || 'BADSC-还原卡组')
+  const filename = String(deck.name || t('fallbackName'))
     .replace(/[\\/:*?"<>|\x00-\x1f]/g, '_').slice(0, 80) + '.dek';
   return { deck, original, filename, source: 'code' };
 }
 
 async function runConversion(source, action) {
   const id = ++conversionId;
-  clearResult('正在转换，请稍候…');
-  $('result-kind').textContent = '处理中';
-  setStatus(source === 'upload' ? '正在读取并生成分享码…' : '正在校验并还原卡组…');
+  resetView();
+  setStatus(source === 'upload' ? 'convertingUpload' : 'convertingCode');
+  render();
   try {
     const result = await action();
     if (id !== conversionId) return;
-    renderDeck(result.deck, result.source);
+    const deck = { ...result.deck, cards: countCards(result.deck) };
     if (result.source === 'upload') {
-      $('generated-code').value = result.code;
-      $('code-length').textContent = `${result.code.length} 字符`;
-      $('share-section').classList.remove('hidden');
-      $('result-kind').textContent = '分享码';
-      setStatus('分享码已生成，可以复制。');
+      view = { ...view, kind: 'code', deck, source: 'upload', code: result.code, statusKey: 'codeReady' };
     } else {
       downloadBytes = result.original;
       downloadName = result.filename;
-      $('download-filename').textContent = result.filename;
-      $('download-section').classList.remove('hidden');
-      $('result-kind').textContent = '.dek 文件';
-      setStatus('卡组已还原，可以下载 .dek 文件。');
+      view = { ...view, kind: 'deck', deck, source: 'code', filename: result.filename, statusKey: 'deckReady' };
     }
+    render();
   } catch (error) {
     if (id !== conversionId) return;
-    const message = friendlyError(error);
-    clearResult('转换失败，请检查输入后重试。');
-    $('overview-empty').querySelector('p').textContent = '本次转换没有生成卡组信息。';
-    $('result-kind').textContent = '转换失败';
-    setStatus(message, true);
+    resetView();
+    view.kind = 'error';
+    view.statusKey = friendlyError(error);
+    view.statusError = true;
+    render();
   }
 }
+
+function setLang(next) {
+  lang = next;
+  persistLang(lang);
+  applyStaticText();
+  // 保留已有结果，只把文案换成新语言。
+  if (view.deck && view.kind !== 'error') view.statusKey = view.kind === 'code' ? 'codeReady' : 'deckReady';
+  render();
+}
+
+applyStaticText();
 
 const fileInput = $('file-input');
 fileInput.addEventListener('change', () => {
@@ -117,22 +165,24 @@ const decode = () => runConversion('code', convertCode);
 $('decode-button').addEventListener('click', decode);
 $('code-input').addEventListener('input', () => {
   ++conversionId;
-  clearResult();
-  setStatus('分享码已修改，点击确定开始转换。');
+  resetView();
+  render();
+  setStatus('codeEdited');
 });
 $('code-input').addEventListener('keydown', (event) => {
   if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') decode();
 });
+$('lang-toggle').addEventListener('click', () => setLang(lang === 'zh' ? 'en' : 'zh'));
 $('copy-button').addEventListener('click', async () => {
   const code = $('generated-code').value;
   if (!code) return;
   try {
     await navigator.clipboard.writeText(code);
-    setStatus('分享码已复制。');
+    setStatus('codeCopied');
   } catch {
     $('generated-code').focus();
     $('generated-code').select();
-    setStatus('复制失败，已选中分享码，请手动复制。', true);
+    setStatus('copyFailed', true);
   }
 });
 $('download-button').addEventListener('click', () => {

@@ -9,6 +9,7 @@ const root = path.join(__dirname, 'web');
 const files = new Map([
   ['/', ['index.html', 'text/html; charset=utf-8']],
   ['/app.js', ['app.js', 'text/javascript; charset=utf-8']],
+  ['/i18n.js', ['i18n.js', 'text/javascript; charset=utf-8']],
   ['/codec.js', ['codec.js', 'text/javascript; charset=utf-8']],
   ['/bads3-binary.js', ['bads3-binary.js', 'text/javascript; charset=utf-8']],
   ['/bads3-columns.js', ['bads3-columns.js', 'text/javascript; charset=utf-8']],

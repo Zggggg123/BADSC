@@ -1,1 +1,15 @@
-.node_modules/**
+# 依赖：网页所需资源已内置于 web/vendor/，仓库不需要 node_modules
+node_modules/
+
+# 测试样本：471 份 .dek 体量较大，仅本地保留
+test_dek/
+
+# 工作区数据（记忆、会话等），不纳入版本控制
+.workbuddy/
+
+# 编辑器与系统
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
