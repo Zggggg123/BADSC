@@ -1,0 +1,6 @@
+# Content-addressed dictionaries must retain their exact original bytes.
+web/dictionaries/*.json -text
+
+# Local Windows entry points require CRLF when checked out.
+*.cmd text eol=crlf
+*.wasm binary

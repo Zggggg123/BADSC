@@ -12,6 +12,7 @@
 - Playwright 锁定为开发依赖，移除当前脚本中的个人用户目录默认路径。
 - `.github/workflows/test.yml` 只运行测试，权限为 `contents: read`，不发布网站、不读取发布凭据。
 - 发布目标在 `site.config.json` 明确配置。
+- `.gitattributes` 保留字典文件原始字节，修复 Windows 全新检出因换行转换而校验失败的问题；原快照内容和 ID 不变。
 - `发布网站.cmd` 从当前版本跟踪中移除，本机文件保留。旧提交仍可见，未改写历史；脚本不包含凭据，也不授予 GitHub 写权限。
 
 ## 公开前检查
