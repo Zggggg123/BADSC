@@ -1,5 +1,7 @@
 # BADSC 上线检查清单
 
+正式发布采用独立 `BADSC-web` 仓库与 GitHub Pages，日常流程见 [GitHub Pages 发布说明](GITHUB-PAGES.md)。本地测试结论和线上验收应分别核对；Pages 的响应头不能沿用本地服务器或 Cloudflare 的假设。
+
 本文记录把 `web/` 部署为公开站点前必须确认的事项，以及每项的实测依据。文中「实测」指
 2026-09-30 用 headless Chrome 对本地静态服务器真实跑出的结果，不是静态阅读代码的推断。
 
@@ -22,6 +24,7 @@
 web/
   index.html
   app.js  i18n.js  codec.js  bads3-binary.js  bads3-columns.js  style.css
+  favicon.svg
   dictionaries/manifest.json
   dictionaries/2d60d18a6a896cb6.json
   vendor/index.web.js

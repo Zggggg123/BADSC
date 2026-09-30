@@ -16,6 +16,7 @@ const types = {
   '.css': 'text/css; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
   '.wasm': wasmMode === 'wrong' ? 'application/octet-stream' : 'application/wasm',
+  '.svg': 'image/svg+xml',
 };
 
 let wasmHits = 0;

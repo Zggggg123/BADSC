@@ -4,6 +4,10 @@ BADSC 是《Broken Arrow》卡组文件 `.dek` 与分享码双向转换的本地
 
 ## 快速开始
 
+在线使用：[BADSC 网站](https://zggggg123.github.io/BADSC-web/)。在线转换也只在浏览器内进行，不会上传卡组文件或分享码。
+
+下面是本地运行方式：
+
 需要 **Node.js 18 或更新版本**。Windows 用户双击 [启动网页.cmd](启动网页.cmd)；其他系统或习惯命令行的用户，在项目目录运行：
 
 ```sh
@@ -38,6 +42,14 @@ node server.cjs
 - BADS3 分享码记录其字典快照 ID。解码时网页按 ID 加载并校验对应快照；若将来发布新版字典，需要保留已发布分享码依赖的旧快照。当前仓库只有一版字典。
 
 格式与字典生命周期见 [BADS3 协议与维护](docs/BADS3.md)。项目目前暂停进一步的编码压缩优化；既有测量结果保存在 [分享码长度试验记录](docs/COMPRESSION-RESEARCH.md)。
+
+## 网站发布
+
+开发仓库为 `Zggggg123/BADSC`，正式网站文件保存在独立的 [BADSC-web](https://github.com/Zggggg123/BADSC-web) 仓库，由 GitHub Pages 发布其 `main` 分支根目录。
+
+修改后先本地预览、测试并提交开发改动，再双击 [发布网站.cmd](发布网站.cmd)。发布脚本会运行本地编解码回归、生成静态站点并推送到网站仓库；不会推送开发仓库。线上更新通常需要等待 Pages 部署完成。
+
+只生成本地预览产物：`node tools/build-site.mjs --preview`。产物与网站仓库缓存位于被 Git 忽略的 `.publish/`。每次发布包含 `release.json`，记录开发提交和资源 SHA-256。详细流程见 [GitHub Pages 发布说明](docs/GITHUB-PAGES.md)。
 
 ## 开发与验证
 

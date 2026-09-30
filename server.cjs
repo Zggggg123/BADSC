@@ -14,6 +14,7 @@ const files = new Map([
   ['/bads3-binary.js', ['bads3-binary.js', 'text/javascript; charset=utf-8']],
   ['/bads3-columns.js', ['bads3-columns.js', 'text/javascript; charset=utf-8']],
   ['/style.css', ['style.css', 'text/css; charset=utf-8']],
+  ['/favicon.svg', ['favicon.svg', 'image/svg+xml']],
   ['/vendor/index.web.js', ['vendor/index.web.js', 'text/javascript; charset=utf-8']],
   ['/vendor/pkg.web/brotli_wasm.js', ['vendor/pkg.web/brotli_wasm.js', 'text/javascript; charset=utf-8']],
   ['/vendor/pkg.web/brotli_wasm_bg.wasm', ['vendor/pkg.web/brotli_wasm_bg.wasm', 'application/wasm']],
